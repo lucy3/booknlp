@@ -17,6 +17,10 @@ class NameCoref:
         This tab-sep'd input file has canonical name is in the first col followed by nicknames
         '''
         self.honorifics={"mr":1, "mr.":1, "mrs":1, "mrs.":1, "miss":1, "uncle":1, "aunt":1, "lady":1, "lord":1, "monsieur":1, "master":1, "mistress":1}
+        self.hon_mapper={"mister":"mr.", "mr.":"mr.", "mr":"mr.", "mistah":"mr.", "mastah":"mr.", "master":"mr.",
+        "miss":"miss", "ms.": "miss", "ms":"miss","missus":"miss","mistress":"miss",
+        "mrs.":"mrs.", "mrs":"mrs."
+        }
         # this is the part that has Thomas = Tom, Lolita = Dolores, etc
         self.aliases={} # {nickname : {canonical name: 1}}
         with open(aliasFile) as file:
@@ -287,10 +291,9 @@ class NameCoref:
                 refs.append(-1)
         
 #         # TODO: DELETE THIS BLOCK LATER
-#         print("HOW MENTIONS WERE GROUPED")
 #         for top in top_to_mentions: 
 #             if len(top_to_mentions[top]) > 5: 
-#                 print(top, '------', top_to_mentions[top])
+#                 print(top, uniq[top], '------', top_to_mentions[top])
 #         print()
         
         return refs
@@ -341,6 +344,47 @@ class NameCoref:
 
         entities, is_named=read_file(spanFile)
         cluster(entities, is_named)
+        
+    def aggregate_freq_names(self, entities, refs):
+        '''
+        ADDED BY LUCY
+        
+        For proper names that appear at least 100 times, group 
+        all of its occurrences and for single-token entities, very short 
+        mentions that contain it as a substring into the same cluster
+        '''
+        hons = set(self.hon_mapper.keys())
+        
+        uniq = defaultdict(list)
+        for idx, (s, e, full_cat, name) in enumerate(entities):
+            prop=full_cat.split("_")[0]
+            cat=full_cat.split("_")[1]
+            if prop == "PROP" and cat == "PER":
+                coref_ID = refs[idx]
+                uniq[name.lower()].append(coref_ID)
+            
+        reassign = {}
+        for name in uniq: 
+            if len(uniq[name]) > 100: 
+                reassign[name] = Counter(uniq[name]).most_common(1)[0][0]
+        single_tok_cands = set([i for i in reassign.keys() if ' ' not in i])
+        for idx, (s, e, full_cat, name) in enumerate(entities):
+            # avoid mentions with posessives
+            if "’" in name or "'" in name or ' of ' in name: continue
+            name = name.lower()
+            tokens = name.split()
+            if len(tokens) > 3: continue
+            if name in reassign: 
+                refs[idx] = reassign[name]
+                continue
+            tokens = set(tokens)
+            # ignore mentions with honorifics
+            if tokens & hons: continue 
+            overlap = tokens & single_tok_cands
+            if overlap and len(overlap) == 1: 
+                for o in overlap: 
+                    refs[idx] = reassign[o]
+        return refs
 
     def cluster_identical_propers(self, entities, refs):
 
@@ -422,19 +466,13 @@ class NameCoref:
         
         This is actually clusters mentions of named people not just nouns
         '''
-
-        hon_mapper={"mister":"mr.", "mr.":"mr.", "mr":"mr.", "mistah":"mr.", "mastah":"mr.", "master":"mr.",
-        "miss":"miss", "ms.": "miss", "ms":"miss","missus":"miss","mistress":"miss",
-        "mrs.":"mrs.", "mrs":"mrs."
-        }
-
         def map_honorifics(term):
             '''
             Handle diff variants of honorifics
             '''
             term=term.lower()
-            if term in hon_mapper:
-                return hon_mapper[term]
+            if term in self.hon_mapper:
+                return self.hon_mapper[term]
             return None
 
         is_named=[]
@@ -517,7 +555,7 @@ class NameCoref:
 #         # TODO: DELETE THIS BLOCK LATER
 #         print("RESULTING NAME CLUSTERS")
 #         for ref in clusters: 
-#             if clusters[ref] is None: continue
+#             if clusters[ref] is None or ref == -1: continue
 #             if sum(clusters[ref].values()) > 10: 
 #                 print(ref)
 #                 print(Counter(clusters[ref]).most_common())
