@@ -80,7 +80,7 @@ class SpacyPipeline:
 	def __init__(self, spacy_nlp):
 		self.spacy_nlp=spacy_nlp
 		self.spacy_nlp.max_length = 10000000
-
+		self.spacy_nlp.batch_size=500
 
 	def filter_ws(self, text):
 		text=re.sub(" ", "S", text)
