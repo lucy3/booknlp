@@ -101,8 +101,15 @@ class SpacyPipeline:
 		return self.process_doc(doc)
 
 	def tag(self, text):
-
-		doc = self.spacy_nlp(text)
+		if len(text) > 1900000: 
+			# memory efficient ? 
+			pseudo_sents = text.split('.')
+			half_idx = len(pseudo_sents) // 2
+			texts = ['.'.join(pseudo_sents[:half_idx]), '.'.join(pseudo_sents[half_idx:])]
+			docs = list(self.spacy_nlp.pipe(texts))
+			doc = Doc.from_docs(docs)
+		else:
+			doc = self.spacy_nlp(text)
 		return self.process_doc(doc)
 
 	def process_doc(self, doc):

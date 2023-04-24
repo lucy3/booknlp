@@ -352,7 +352,7 @@ class EnglishBookNLP:
 
 					
 				tokens=self.tagger.tag(data)
-                gc.collect() # plug memory leaks
+				gc.collect() # plug memory leaks
 				
 				print("--- spacy: %.3f seconds ---" % (time.time() - start_time))
 				start_time=time.time()
