@@ -1,5 +1,7 @@
 # BookNLP
 
+## This version has improved character name clustering 
+
 BookNLP is a natural language processing pipeline that scales to books and other long documents (in English), including:
 
 * Part-of-speech tagging
