@@ -1,4 +1,6 @@
 import re
+import gc
+import torch
 
 class Entity:
 	def __init__(self, start, end, entity_id=None, quote_id=None, quote_eid=None, proper=None, ner_cat=None, in_quote=None, text=None):
@@ -101,15 +103,21 @@ class SpacyPipeline:
 		return self.process_doc(doc)
 
 	def tag(self, text):
-		if len(text) > 1900000: 
-			# memory efficient ? 
-			pseudo_sents = text.split('.')
-			half_idx = len(pseudo_sents) // 2
-			texts = ['.'.join(pseudo_sents[:half_idx]), '.'.join(pseudo_sents[half_idx:])]
-			docs = list(self.spacy_nlp.pipe(texts))
-			doc = Doc.from_docs(docs)
-		else:
-			doc = self.spacy_nlp(text)
+		#if len(text) > 1900000: 
+		#	# memory efficient ? 
+		#	pseudo_sents = text.split('.')
+		#	half_idx = len(pseudo_sents) // 3
+		#	texts = ['.'.join(pseudo_sents[:half_idx]), 
+		#		'.'.join(pseudo_sents[half_idx:(2*half_idx)]), 
+		#		'.'.join(pseudo_sents[(2*half_idx):])]
+		#	docs = []
+		#	for text in texts: 
+		#		docs.append(self.spacy_nlp(text))
+		#		gc.collect()
+		#		torch.cuda.empty_cache()
+		#	doc = Doc.from_docs(docs)
+		#else:
+		doc = self.spacy_nlp(text)
 		return self.process_doc(doc)
 
 	def process_doc(self, doc):
