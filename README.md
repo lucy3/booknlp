@@ -2,7 +2,9 @@
 
 ## This version ("Lucy's version") has improved character name clustering 
 
-Original booknlp: https://github.com/booknlp/booknlp/tree/main
+Original `booknlp`: https://github.com/booknlp/booknlp/tree/main
+
+Our fork is from `booknlp` version 1.0.7. 
 
 Our changes and motivation, from [our paper](https://culturalanalytics.org/article/131682-racial-and-ethnic-representation-in-literature-taught-in-us-high-schools): 
 
