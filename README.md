@@ -12,7 +12,7 @@ Our changes and motivation, from [our paper](https://culturalanalytics.org/artic
 
 Evaluation results can be found in section 4.3 of the paper linked above, showing improved precision and purity for "main" characters of books. 
 
-In addition, always use the spacy `trf` model if possible. From my experience, smaller spacy models exhibit more fairness-related issues (e.g. not detecting people with less common names as PERSON). 
+In addition, try to use the spacy `trf` model if you have GPU access. From my experience, smaller spacy models exhibit more fairness-related issues (e.g. not detecting people with less common names as PERSON). 
 
 ```
 model_params = {
